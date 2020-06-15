@@ -122,7 +122,7 @@ class YandexWeather (WeatherEntity):
     def temperature(self) -> int:
         """Return the temperature."""
         if self._weather_data.current is not None:
-            return self._weather_data.current['temp']
+            return self._weather_data.current.get('temp')
         return None
     
     @property
@@ -134,7 +134,7 @@ class YandexWeather (WeatherEntity):
     def humidity(self) -> int:
         """Return the humidity."""
         if self._weather_data.current is not None:
-            return self._weather_data.current['humidity']
+            return self._weather_data.current.get('humidity')
         return None
     
     @property
@@ -142,7 +142,7 @@ class YandexWeather (WeatherEntity):
         """Return the wind speed."""
         if self._weather_data.current is not None:
             # Convert from m/s to km/h
-            return round(self._weather_data.current['wind_speed'] * 18 / 5)
+            return round(self._weather_data.current.get('wind_speed') * 18 / 5)
         return None
     
     @property
@@ -150,14 +150,14 @@ class YandexWeather (WeatherEntity):
         """Return the wind speed."""
         if self._weather_data.current is not None:
             # The current wind bearing
-            return self._weather_data.current['wind_dir']
+            return self._weather_data.current.get('wind_dir')
         return None
     
     @property
     def pressure(self) -> int:
         """Return the pressure."""
         if self._weather_data.current is not None:
-            return self._weather_data.current['pressure_pa']
+            return self._weather_data.current.get('pressure_pa')
         return None    
     
     @property
@@ -165,14 +165,14 @@ class YandexWeather (WeatherEntity):
         if self._weather_data.current is not None:
             return next((
             k for k, v in CONDITION_CLASSES.items()
-            if self._weather_data.current['condition'] in v), None)            
+            if self._weather_data.current.get('condition') in v), None)
         return STATE_UNKNOWN
 
     @property
     def condition_icon(self) -> int:
         """Return the pressure."""
         if self._weather_data.current is not None:
-            return self._weather_data.current['icon']
+            return self._weather_data.current.get('icon')
         return None 
 
     @property
@@ -180,29 +180,29 @@ class YandexWeather (WeatherEntity):
         """Return the forecast array."""
         if self._weather_data.forecast is not None:
             fcdata_out = []
-            for data_in in self._weather_data.forecast['parts']:
+            for data_in in self._weather_data.forecast.get('parts', []):
                 data_out = {}
-                if (self._weather_data.forecast['parts'].index(data_in) == 0):
+                if (self._weather_data.forecast.get('parts').index(data_in) == 0):
                     data_out[ATTR_FORECAST_TIME] = dt_util.utcnow()+timedelta(minutes=350)
-                if (self._weather_data.forecast['parts'].index(data_in) == 1):
+                if (self._weather_data.forecast.get('parts').index(data_in) == 1):
                     data_out[ATTR_FORECAST_TIME] = dt_util.utcnow()+timedelta(minutes=700)
-                data_out[ATTR_FORECAST_TEMP] = data_in['temp_max']
-                data_out[ATTR_FORECAST_TEMP_LOW] = data_in['temp_min']
+                data_out[ATTR_FORECAST_TEMP] = data_in.get('temp_max')
+                data_out[ATTR_FORECAST_TEMP_LOW] = data_in.get('temp_min')
                 data_out[ATTR_FORECAST_CONDITION] = next((
                     k for k, v in CONDITION_CLASSES.items()
-                    if data_in['condition'] in v), None)
-                data_out[ATTR_PRESSURE_MM] = data_in['pressure_mm']
-                data_out[ATTR_WEATHER_ICON] = data_in['icon']
-                data_out[ATTR_FEELS_LIKE] = data_in['feels_like']
-                data_out[ATTR_FORECAST_WIND_SPEED] = round(data_in['wind_speed'] * 18 / 5)
-                data_out[ATTR_FORECAST_WIND_BEARING] = data_in['wind_dir']
-                data_out[ATTR_FORECAST_PRECIPITATION] = data_in['prec_mm']
-                data_out[ATTR_PRECIPITATION_PROB] = data_in['prec_prob']
-                data_out[ATTR_WEATHER_CON] = DESCRIPTION_DIC[data_in['condition']]
-                data_out[ATTR_WEATHER_PRESSURE] = data_in['pressure_pa']
-                data_out[ATTR_WEATHER_HUMIDITY] = data_in['humidity']
-                data_out[ATTR_WIND_SPEED_MS] = data_in['wind_speed']
-                data_out['part_of_day'] = data_in['part_name']
+                    if data_in.get('condition') in v), None)
+                data_out[ATTR_PRESSURE_MM] = data_in.get('pressure_mm')
+                data_out[ATTR_WEATHER_ICON] = data_in.get('icon')
+                data_out[ATTR_FEELS_LIKE] = data_in.get('feels_like')
+                data_out[ATTR_FORECAST_WIND_SPEED] = round(data_in.get('wind_speed') * 18 / 5) if 'wind_speed' in data_in else None
+                data_out[ATTR_FORECAST_WIND_BEARING] = data_in.get('wind_dir')
+                data_out[ATTR_FORECAST_PRECIPITATION] = data_in.get('prec_mm')
+                data_out[ATTR_PRECIPITATION_PROB] = data_in.get('prec_prob')
+                data_out[ATTR_WEATHER_CON] = DESCRIPTION_DIC[data_in.get('condition')]
+                data_out[ATTR_WEATHER_PRESSURE] = data_in.get('pressure_pa')
+                data_out[ATTR_WEATHER_HUMIDITY] = data_in.get('humidity')
+                data_out[ATTR_WIND_SPEED_MS] = data_in.get('wind_speed')
+                data_out['part_of_day'] = data_in.get('part_name')
                 fcdata_out.append(data_out)
 
             return fcdata_out
@@ -217,12 +217,12 @@ class YandexWeather (WeatherEntity):
         """Return device specific state attributes."""
         if self._weather_data.current is not None:
             data = dict()
-            data[ATTR_FEELS_LIKE] = self._weather_data.current['feels_like']
-            data[ATTR_PRESSURE_MM] = self._weather_data.current['pressure_mm']
-            data[ATTR_WIND_SPEED_MS] = self._weather_data.current['wind_speed']
-            data[ATTR_WEATHER_ICON] = self._weather_data.current['icon']
-            data[ATTR_OBS_TIME] = dt_util.as_local(dt_util.utc_from_timestamp(self._weather_data.current['obs_time'])).strftime(TIME_STR_FORMAT)
-            data[ATTR_WEATHER_CON] = DESCRIPTION_DIC[self._weather_data.current['condition']]
+            data[ATTR_FEELS_LIKE] = self._weather_data.current.get('feels_like')
+            data[ATTR_PRESSURE_MM] = self._weather_data.current.get('pressure_mm')
+            data[ATTR_WIND_SPEED_MS] = self._weather_data.current.get('wind_speed')
+            data[ATTR_WEATHER_ICON] = self._weather_data.current.get('icon')
+            data[ATTR_OBS_TIME] = dt_util.as_local(dt_util.utc_from_timestamp(self._weather_data.current.get('obs_time'))).strftime(TIME_STR_FORMAT)
+            data[ATTR_WEATHER_CON] = DESCRIPTION_DIC[self._weather_data.current.get('condition')]
             return data
         return None 
 
@@ -237,8 +237,8 @@ class YaWeather(object):
         self._lon = lon
         self._loop = loop
         self._session = session
-        self._current = {}
-        self._forecast = {}
+        self._current = None
+        self._forecast = None
         
 
     async def get_weather(self):
@@ -251,9 +251,10 @@ class YaWeather(object):
             data = await response.json()
 
             if ('status' not in data):
-                self._current = data['fact']
-                self._forecast = data['forecast']
-
+                self._current = data['fact'] if 'fact' in data else None
+                self._forecast = data['forecast'] if 'forecast' in data else None
+                _LOGGER.debug(f"Current data:{self._current}")
+                _LOGGER.debug(f"Forecast data:{self._forecast}")
             else:
                 _LOGGER.error('Error fetching data from Yandex.Weather, %s, %s', data['status'],data['message'])
 
