@@ -47,11 +47,11 @@ CONDITION_CLASSES = {
     'sunny': ['clear'],
     'partlycloudy': ['partly-cloudy'],
     'cloudy': ['cloudy', 'overcast'],
-    'pouring': ['overcast-and-rain'],
-    'rainy': ['cloudy-and-rain', 'overcast-and-light-rain', 'cloudy-and-light-rain', 'partly-cloudy-and-light-rain'],
-    'lightning-rainy': ['overcast-thunderstorms-with-rain'],
-    'snowy-rainy': ['overcast-and-wet-snow'],
-    'snowy': ['cloudy-and-snow', 'overcast-and-light-snow', 'cloudy-and-light-snow', 'overcast-and-snow', 'partly-cloudy-and-snow', 'partly-cloudy-and-light-snow'],
+    'pouring': ['heavy-rain', 'continuous-heavy-rain', 'showers', 'hail'],
+    'rainy': ['drizzle', 'light-rain', 'rain', 'moderate-rain'],
+    'lightning-rainy': ['thunderstorm', 'thunderstorm-with-rain', 'thunderstorm-with-hail'],
+    'snowy-rainy': ['wet-snow'],
+    'snowy': ['light-snow', 'snow', 'snow-showers'],
 }
 
 DESCRIPTION_DIC = {
@@ -59,20 +59,21 @@ DESCRIPTION_DIC = {
     'partly-cloudy': 'Малооблачно',
     'cloudy': 'Облачно с прояснениями',
     'overcast': 'Пасмурно',
-    'partly-cloudy-and-light-rain': 'Небольшой дождь',
-    'partly-cloudy-and-rain': 'Дождь',
-    'overcast-and-rain': 'Сильный дождь',
-    'overcast-thunderstorms-with-rain': 'Сильный дождь, гроза',
-    'cloudy-and-light-rain': 'Небольшой дождь',
-    'overcast-and-light-rain': 'Небольшой дождь',
-    'cloudy-and-rain': 'Дождь',
-    'overcast-and-wet-snow': 'Дождь со снегом',
-    'partly-cloudy-and-light-snow': 'Небольшой снег',
-    'partly-cloudy-and-snow': 'Снег',
-    'overcast-and-snow': 'Снегопад',
-    'cloudy-and-light-snow': 'Небольшой снег',
-    'overcast-and-light-snow': 'Небольшой снег',
-    'cloudy-and-snow': 'Снег',
+    'heavy-rain': 'Сильный дождь',
+    'continuous-heavy-rain': 'Длительный сильный дождь',
+    'showers': 'Ливень',
+    'hail': 'Град',
+    'drizzle': 'Морось',
+    'light-rain': 'Небольшой дождь',
+    'rain': 'Дождь',
+    'moderate-rain': 'Умеренно сильный дождь',
+    'thunderstorm': 'Гроза',
+    'thunderstorm-with-rain': 'Дождь с грозой',
+    'thunderstorm-with-hail': 'Гроза с градом',
+    'wet-snow': 'Дождь со снегом',
+    'snow': 'Снег',
+    'snow-showers': 'Снегопад',
+    'light-snow': 'Небольшой снег', 
 }
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=30)
@@ -180,11 +181,12 @@ class YandexWeather (WeatherEntity):
         """Return the forecast array."""
         if self._weather_data.forecast is not None:
             fcdata_out = []
-            for data_in in self._weather_data.forecast.get('parts', []):
+            fc_array = self._weather_data.forecast.get('parts', [])
+            for data_in in fc_array:
                 data_out = {}
-                if (self._weather_data.forecast.get('parts').index(data_in) == 0):
+                if (list(fc_array).index(data_in) == 0):
                     data_out[ATTR_FORECAST_TIME] = dt_util.utcnow()+timedelta(minutes=350)
-                if (self._weather_data.forecast.get('parts').index(data_in) == 1):
+                if (list(fc_array).index(data_in) == 1):
                     data_out[ATTR_FORECAST_TIME] = dt_util.utcnow()+timedelta(minutes=700)
                 data_out[ATTR_FORECAST_TEMP] = data_in.get('temp_max')
                 data_out[ATTR_FORECAST_TEMP_LOW] = data_in.get('temp_min')
@@ -242,7 +244,7 @@ class YaWeather(object):
         
 
     async def get_weather(self):
-        base_url="https://api.weather.yandex.ru/v1/informers?lat=%s&lon=%s" % (self._lat, self._lon)
+        base_url="https://api.weather.yandex.ru/v2/informers?lat=%s&lon=%s" % (self._lat, self._lon)
         headers = {'X-Yandex-API-Key':self._api}       
 
         try:
