@@ -1,0 +1,9 @@
+{
+    "domain": "yandex_weather",
+    "name": "Yandex Weather",
+    "documentation": "https://github.com/bastshoes/yandex_weather",
+    "version": "0.1.1",
+    "dependencies": [],
+    "codeowners": [],
+    "requirements": []
+  }
