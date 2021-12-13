@@ -248,7 +248,7 @@ class YaWeather(object):
         headers = {'X-Yandex-API-Key':self._api}       
 
         try:
-            async with async_timeout.timeout(5, loop=self._loop):
+            async with async_timeout.timeout(5):
                 response = await self._session.get(base_url, headers=headers)
             data = await response.json()
 
