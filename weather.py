@@ -215,7 +215,7 @@ class YandexWeather (WeatherEntity):
         return ATTRIBUTION
     
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return device specific state attributes."""
         if self._weather_data.current is not None:
             data = dict()
