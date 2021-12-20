@@ -2,7 +2,7 @@
     "domain": "yandex_weather",
     "name": "Yandex Weather",
     "documentation": "https://github.com/bastshoes/yandex_weather",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "dependencies": [],
     "codeowners": [],
     "requirements": []
